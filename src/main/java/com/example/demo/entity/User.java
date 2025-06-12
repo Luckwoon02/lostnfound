@@ -3,7 +3,10 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +18,9 @@ import java.util.stream.Collectors;
 
 @Entity
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails {
     
@@ -26,8 +32,12 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String username;
 
-    @NotBlank(message = "Password is required")
     private String password;
+    
+    @Enumerated(EnumType.STRING)
+    private AuthProvider provider;
+    
+    private String providerId;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
@@ -40,6 +50,7 @@ public class User implements UserDetails {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private Set<UserRole> roles = new HashSet<>();
 
     private LocalDateTime createdAt;
@@ -52,6 +63,9 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
         if (roles.isEmpty()) {
             roles.add(UserRole.ROLE_USER);
+        }
+        if (provider == null) {
+            provider = AuthProvider.local;
         }
     }
 
